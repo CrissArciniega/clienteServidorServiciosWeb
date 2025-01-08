@@ -1,26 +1,10 @@
 [
   {
     "cedula": "123456789",
-    "nombres": "Oli",
-    "apellidos": "Garcia",
-    "edad": 18,
+    "nombres": "Isaac",
+    "apellidos": "Mendoza",
+    "edad": 20,
     "curso": "10A",
-    "conducta": "C"
-  },
-  {
-    "cedula": "123456789",
-    "nombres": "Oli",
-    "apellidos": "Garcia",
-    "edad": "a",
-    "curso": "10A",
-    "conducta": "C"
-  },
-  {
-    "cedula": "123456789",
-    "nombres": 1,
-    "apellidos": "Garcia",
-    "edad": "a",
-    "curso": "10A",
-    "conducta": "C"
+    "conducta": "B"
   }
 ]

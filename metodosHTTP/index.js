@@ -31,12 +31,33 @@ const validarUsuario = (usuario) => {
         }
     }
 
+    // Validar que la cédula sea solo números
+    if (!/^\d+$/.test(usuario.cedula)) {
+        return "Error: La cédula debe contener solo números.";
+    }
+
+    // Validar que nombres y apellidos sean solo letras
+    if (!/^[a-zA-Z\s]+$/.test(usuario.nombres)) {
+        return "Error: Los nombres deben contener solo letras.";
+    }
+
+    if (!/^[a-zA-Z\s]+$/.test(usuario.apellidos)) {
+        return "Error: Los apellidos deben contener solo letras.";
+    }
+
+    // Validar que la edad sea solo números
+    if (!/^\d+$/.test(usuario.edad)) {
+        return "Error: La edad debe contener solo números.";
+    }
+
+    // Validar que la conducta sea una letra A, B o C
     if (!['A', 'B', 'C'].includes(usuario.conducta)) {
         return "Error: La 'conducta' debe ser una letra A, B o C.";
     }
 
     return null;
 };
+
 
 // Agregar usuario
 app.post('/usuarios', (req, res) => {
@@ -92,6 +113,75 @@ app.delete('/usuarios/:cedula', (req, res) => {
     const nuevosUsuarios = usuarios.filter((u) => u.cedula !== req.params.cedula);
     guardarUsuarios(nuevosUsuarios);
     res.send('Usuario eliminado.');
+});
+
+app.all('/all', (req, res) => {
+    const metodo = req.method;
+
+    if (metodo === 'GET') {
+        const usuarios = leerUsuarios();
+
+        if (req.query.cedula) { // Filtrar usuario por cédula
+            
+            const usuario = usuarios.find((u) => u.cedula === req.query.cedula);
+            if (!usuario) {
+                return res.status(404).send('Usuario no encontrado.');
+            }
+            return res.json(usuario);
+        }
+
+        // Listar todos los usuarios
+        res.json(usuarios);
+    } else if (metodo === 'POST') {
+        const usuarios = leerUsuarios();
+        const error = validarUsuario(req.body);
+
+        if (error) {
+            return res.status(400).send(error);
+        }
+
+        usuarios.push(req.body);
+        guardarUsuarios(usuarios);
+        res.send('Usuario agregado.');
+    } else if (metodo === 'PUT') {
+        const usuarios = leerUsuarios();
+        const cedula = req.query.cedula;
+
+        if (!cedula) {
+            return res.status(400).send("Error: Se requiere el parámetro 'cedula' para actualizar un usuario.");
+        }
+
+        const index = usuarios.findIndex((u) => u.cedula === cedula);
+        if (index === -1) {
+            return res.status(404).send('Usuario no encontrado.');
+        }
+
+        const error = validarUsuario(req.body);
+        if (error) {
+            return res.status(400).send(error);
+        }
+
+        usuarios[index] = { ...usuarios[index], ...req.body };
+        guardarUsuarios(usuarios);
+        res.send('Usuario actualizado.');
+    } else if (metodo === 'DELETE') {
+        const usuarios = leerUsuarios();
+        const cedula = req.query.cedula;
+
+        if (!cedula) {
+            return res.status(400).send("Error: Se requiere el parámetro 'cedula' para eliminar un usuario.");
+        }
+
+        const nuevosUsuarios = usuarios.filter((u) => u.cedula !== cedula);
+        if (usuarios.length === nuevosUsuarios.length) {
+            return res.status(404).send('Usuario no encontrado.');
+        }
+
+        guardarUsuarios(nuevosUsuarios);
+        res.send('Usuario eliminado.');
+    } else {
+        res.status(405).send('Método no permitido.');
+    }
 });
 
 // Puerto del servidor
