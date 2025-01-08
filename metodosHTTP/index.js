@@ -1,47 +1,100 @@
 const express = require('express');
+const fs = require('fs');
 const app = express();
 
-// Middleware para procesar JSON
 app.use(express.json());
-
-// Middleware para procesar application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
 
-// Servicio POST
-app.post('/mpost', function (req, res) {
-    console.log("Cuerpo recibido (form-urlencoded):", req.body); // Log para depuración
+const bdd_simulada = 'usuarios.json';
+const campos = ["cedula", "nombres", "apellidos", "edad", "curso", "conducta"];
 
-    const num1 = req.body.num1;
-    const num2 = req.body.num2;
+const leerUsuarios = () => {
+    if (fs.existsSync(bdd_simulada)) {
+        return JSON.parse(fs.readFileSync(bdd_simulada, 'utf-8'));
+    }
+    return [];
+};
 
-    if (!num1 || !num2) {
-        return res.status(400).send('Error: num1 o num2 no proporcionados.');
+const guardarUsuarios = (data) => {
+    fs.writeFileSync(bdd_simulada, JSON.stringify(data, null, 2));
+};
+
+const validarUsuario = (usuario) => {
+    const camposExtra = Object.keys(usuario).filter((campo) => !campos.includes(campo));
+    if (camposExtra.length > 0) {
+        return `Error: Los siguientes campos no son permitidos: ${camposExtra.join(', ')}.`;
     }
 
-    let resultado = parseInt(num1) + parseInt(num2);
-    res.send('Metodo post resultado: ' + num1 + '+' + num2 + '=' + resultado);
+    for (const campo of campos) {
+        if (usuario[campo] === undefined) {
+            return `Error: El campo '${campo}' es obligatorio.`;
+        }
+    }
+
+    if (!['A', 'B', 'C'].includes(usuario.conducta)) {
+        return "Error: La 'conducta' debe ser una letra A, B o C.";
+    }
+
+    return null;
+};
+
+// Agregar usuario
+app.post('/usuarios', (req, res) => {
+    const usuarios = leerUsuarios();
+    const error = validarUsuario(req.body);
+    if (error) {
+        return res.send(error); 
+    }
+
+    usuarios.push(req.body);
+    guardarUsuarios(usuarios);
+    res.send('Usuario agregado.');
 });
 
-app.put('/mput', function (req, res) {
-    const body=req.body;
-    let area=parseInt(body.lado)*parseInt(body.lado);
-    let perimetro=parseInt(body.lado)*4;
-
-    res.send('Método Put: Area: '+area+' Perimetro: '+perimetro);
+// Listar todos los usuarios
+app.get('/usuarios', (req, res) => {
+    const usuarios = leerUsuarios();
+    res.json(usuarios);
 });
 
-app.delete('/mdelete', function (req, res) {
-    const body=req.body;
-    let cedula=body.cedula;
-    
-    res.send('Método Delete: Usuario de cédula '+cedula+'  eliminado');
+// Filtrar usuarios por cédula
+app.get('/usuarios/cedula/:cedula', (req, res) => {
+    const usuarios = leerUsuarios();
+    const usuario = usuarios.find((u) => u.cedula === req.params.cedula);
+    if (!usuario) {
+        return res.status(404).send('Usuario no encontrado.');
+    }
+    res.json(usuario);
 });
 
-app.all('/mall', (req, res) => {
-    res.send('Se recibió una solicitud ${req.method} en la ruta /mall.');
+// Actualizar usuario
+app.put('/usuarios/:cedula', (req, res) => {
+    const usuarios = leerUsuarios();
+    const index = usuarios.findIndex((u) => u.cedula === req.params.cedula);
+
+    if (index === -1) {
+        return res.status(404).send('Usuario no encontrado.');
+    }
+
+    const error = validarUsuario(req.body);
+    if (error) {
+        return res.status(400).send(error);
+    }
+
+    usuarios[index] = { ...usuarios[index], ...req.body };
+    guardarUsuarios(usuarios);
+    res.send('Usuario actualizado.');
 });
 
-//llamada al puerto por defecto de node 3000
+// Eliminar usuario
+app.delete('/usuarios/:cedula', (req, res) => {
+    const usuarios = leerUsuarios();
+    const nuevosUsuarios = usuarios.filter((u) => u.cedula !== req.params.cedula);
+    guardarUsuarios(nuevosUsuarios);
+    res.send('Usuario eliminado.');
+});
+
+// Puerto del servidor
 app.listen(3000, () => {
-    console.log('Escuchando a través del puerto 3000')
+    console.log('Servidor escuchando en el puerto 3000');
 });
