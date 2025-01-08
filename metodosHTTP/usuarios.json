@@ -22,5 +22,13 @@
     "edad": "a",
     "curso": "10A",
     "conducta": "C"
+  },
+  {
+    "cedula": "1005452071",
+    "nombres": "Arci",
+    "apellidos": "Mne",
+    "edad": 20,
+    "curso": "10A",
+    "conducta": "C"
   }
 ]
