@@ -31,12 +31,11 @@ const validarUsuario = (usuario) => {
         }
     }
 
-    // Validar que la cédula sea solo números
+
     if (!/^\d+$/.test(usuario.cedula)) {
         return "Error: La cédula debe contener solo números.";
     }
 
-    // Validar que nombres y apellidos sean solo letras
     if (!/^[a-zA-Z\s]+$/.test(usuario.nombres)) {
         return "Error: Los nombres deben contener solo letras.";
     }
@@ -45,12 +44,10 @@ const validarUsuario = (usuario) => {
         return "Error: Los apellidos deben contener solo letras.";
     }
 
-    // Validar que la edad sea solo números
     if (!/^\d+$/.test(usuario.edad)) {
         return "Error: La edad debe contener solo números.";
     }
 
-    // Validar que la conducta sea una letra A, B o C
     if (!['A', 'B', 'C'].includes(usuario.conducta)) {
         return "Error: La 'conducta' debe ser una letra A, B o C.";
     }
