@@ -1,14 +1,25 @@
-//PROTOCOLO DE INTERCAMBIO
 const express = require('express');
 const app = express();
+
+// Middleware para procesar JSON
 app.use(express.json());
 
-//SERVICIO WEB
-app.post('/mpost', function (req, res) {
-    const body=req.body;
-    let resultado=parseInt(body.num1)+parseInt(body.num2);
+// Middleware para procesar application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true }));
 
-    res.send('Metodo post resultado: '+body.num1+'+'+body.num2+'='+resultado);
+// Servicio POST
+app.post('/mpost', function (req, res) {
+    console.log("Cuerpo recibido (form-urlencoded):", req.body); // Log para depuración
+
+    const num1 = req.body.num1;
+    const num2 = req.body.num2;
+
+    if (!num1 || !num2) {
+        return res.status(400).send('Error: num1 o num2 no proporcionados.');
+    }
+
+    let resultado = parseInt(num1) + parseInt(num2);
+    res.send('Metodo post resultado: ' + num1 + '+' + num2 + '=' + resultado);
 });
 
 app.put('/mput', function (req, res) {
@@ -27,7 +38,7 @@ app.delete('/mdelete', function (req, res) {
 });
 
 app.all('/mall', (req, res) => {
-    res.send(`Se recibió una solicitud ${req.method} en la ruta /info.`);
+    res.send('Se recibió una solicitud ${req.method} en la ruta /mall.');
 });
 
 //llamada al puerto por defecto de node 3000
